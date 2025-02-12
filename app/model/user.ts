@@ -30,7 +30,7 @@ const MessageSchema : Schema<Message> = new Schema({
 
 })
 
-const userSchema :Schema<User> = new Schema({
+const userSchema : Schema<User> = new Schema({
     username:{
         type:String,
         required:[true,"username is required"],
@@ -40,7 +40,7 @@ const userSchema :Schema<User> = new Schema({
         type:String,
         required:true,
         unique:true,
-        match: [/.+\@.+\..+/,'use a valid emal address']
+        match: [/.+\@.+\..+/,'use a valid email address']
     },
     passwrod:{
         type:String,
