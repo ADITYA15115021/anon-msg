@@ -7,7 +7,7 @@ import Link from "next/Lint";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast"
-import { signUpSchema } from "@/app/schemas/signUp";
+import { signUpSchema } from "@/app/schemas/signUpSchema";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
