@@ -2,70 +2,113 @@
 "use client"
 
 import axios from "axios";
+import { messageSchema } from "@/app/schemas/messageSchema";
+import { Message } from "@/app/model/user";
 import { useForm } from "react-hook-form"
 import * as z from "zod";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {useSession} from "next-auth/react";
 import { User } from "@/app/model/user";
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
-import { register } from "module";
 import { AcceptMessageSchema } from "@/app/schemas/acceptMessageSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useToast } from "@/hooks/use-toast";
+
 
 
 
 
 export default function DashBoard(){
 
-    const {data:session} = useSession()
-    const {username} = session?.user as User;
+     
+    const [messages,setMessages]    =  useState<Message[]>([]);
+    const [isLoading,setIsLoading]  =  useState(false);
+    const [isSwitchLoading,setSwitchLoading]       =  useState(false);
+  
+    // const {data:session} = useSession()
+    // const {username} = session?.user as User;
     
-    const form = useForm<z.infer< >>({
+    const form = useForm<z.infer<typeof AcceptMessageSchema >>({
         resolver:zodResolver(AcceptMessageSchema)
     });
     const {register,watch,setValue} = form;
 
+    const {toast} =  useToast();
+
     const acceptMessages = watch('acceptMessages');
-     
-    
-    const [messages,setMessages] = useState([]);
-    const [loading,setLoading]   = useState();
 
-    const {toast} = toast();
-
-   
-
-   
-
-
-    const handleDelete = async () => {
-        setMessages( messages.filter( (message) => {
-
-        }  ) )
+    //handling of deletion of messages
+    const handleDeleteMessage = ( messageId:string) => {
+        setMessages(messages.filter( (message) =>  message._id !== messageId   
+          ) )
     }
 
-    const fetchAcceptingState = async () => {
-        try {
-            
+
+
+    const fetchAcceptMessage = useCallback( async () => {
+         setSwitchLoading(true);
+         
+         try {
+
+        const response = await axios.get("/api/accept-messages");
+        setValue('acceptMessages',response.data.isAcceptingMessage); 
         } catch (error) {
-            console.log("error fetching state",error);
+            console.log("error sending update accept",error);
+            toast({
+                title:"error",
+                description:"failed to fetch the message state",
+                variant:"destructive"
+            })
+        }
+    },[setValue] );
+
+
+
+    const fetchMessages = useCallback(async (refresh:boolean = false)=>{
+        setIsLoading(true);
+        setSwitchLoading(true);
+        try {
+
+        const response = await axios.get("/api/get-messages");
+        setMessages(response.data.messages || []);
+        } catch (error) {
+        console.log(error);
+        }finally{
+        setIsLoading(false);
+        setSwitchLoading(false);
+        }
+        },[setIsLoading,setMessages] )
+
+    const handleSwitch = async() => {
+        try {
+            const response = await axios.post("/api/accept-messages",{
+                acceptMessages : !acceptMessages
+            });
+
+            setValue("acceptMessages",!acceptMessages);
+            toast({
+                title:response.data.message,
+                variant:"default"
+            })
+
+         } catch (error) {
+            console.log("can't change the state ",error);
         }
     }
-
-    const fetchAcceptMessages 
-
+    //dummmy;    
+    const username = "aditya";
     const baseUrl = `${window.location.protocol}://${window.location.host}`;
-    const profileUrl = `${baseUrl}/u/${username}`;
+    const profileUrl = `${baseUrl}/send-messages/${username}`;
 
     const handleCopy = () =>{
         
     }
 
-    if( !session || !session.user ){
-        return <div>plase login</div>
-    }
+    // if( !session || !session.user ){
+    //     return <div>plase login</div>
+    // }
 
 
     return(
@@ -93,7 +136,7 @@ export default function DashBoard(){
                     <Switch
                     {...register('acceptMessages')}
                     checked={acceptMessages}
-                    onCheckedChange={handleSwitchChange}
+                    onCheckedChange={handleSwitch}
                     disabled={isSwitchLoading}
                     >
 
@@ -113,7 +156,6 @@ export default function DashBoard(){
                         }}
                 >
 
-
                 </Button>
 
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -130,10 +172,8 @@ export default function DashBoard(){
                     )}
 
                 </div>
-                
-
-
-          </div>
+            
+            </div>
          
         </>
     )

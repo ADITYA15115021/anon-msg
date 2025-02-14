@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/options";
 import { dbConnect } from "@/app/lib/dbconnect";
 import { User } from "@/app/model/user";
-import { User } from "next-auth";
+
 
 export async function POST(req:Response) {
     
